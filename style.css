@@ -1,0 +1,865 @@
+:root {
+  --primary-pink: #ff758c;
+  --secondary-pink: #ff7eb3;
+  --soft-pink: #ffeef2;
+  --deep-pink: #f72585;
+  --accent-purple: #b5179e;
+  --pastel-lavender: #f3e8ff;
+  --gold-glow: #ffd166;
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.85);
+  --glass-shadow: 0 16px 36px rgba(255, 105, 180, 0.22);
+  --text-main: #4a2840;
+  --text-muted: #88506d;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  color: var(--text-main);
+  min-height: 100vh;
+  width: 100vw;
+  overflow-x: hidden;
+  background: radial-gradient(circle at 50% 20%, #ffeef8 0%, #ffdde1 45%, #fbc2eb 100%);
+  background-attachment: fixed;
+  position: relative;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Canvas hiệu ứng hạt bay - Hardware Accelerated */
+#fx-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Music Player Floating Widget */
+.music-player {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  padding: 8px 16px;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 24px rgba(255, 105, 180, 0.2);
+  cursor: pointer;
+  z-index: 100;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.music-player:hover {
+  transform: translateY(-2px) scale(1.03);
+}
+
+.disc-icon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #ff758c, #ff7eb3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  color: white;
+  box-shadow: 0 3px 10px rgba(255, 117, 140, 0.4);
+}
+
+.disc-icon.playing {
+  animation: spinDisc 3s linear infinite;
+}
+
+@keyframes spinDisc {
+  100% { transform: rotate(360deg); }
+}
+
+.music-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.song-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--deep-pink);
+}
+
+.music-status {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.btn-next-song {
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-next-song:hover {
+  transform: scale(1.25);
+}
+
+/* Container Chính */
+.app-container {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+/* Base Screens Transition */
+.screen {
+  display: none;
+  opacity: 0;
+  transform: scale(0.94) translateY(18px);
+  transition: opacity 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  width: 100%;
+  max-width: 580px;
+}
+
+.screen.active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+/* Glassmorphism Card Style */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 2px solid var(--glass-border);
+  border-radius: 28px;
+  box-shadow: 0 10px 30px rgba(255, 105, 180, 0.18);
+  padding: 32px 24px;
+  width: 100%;
+  position: relative;
+  text-align: center;
+  box-sizing: border-box;
+  transform: translateZ(0);
+}
+
+/* Card Decorative Icons */
+.card-decor {
+  position: absolute;
+  font-size: 24px;
+  filter: drop-shadow(0 2px 6px rgba(255, 105, 180, 0.3));
+  animation: floatDecor 3s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.decor-tl { top: -14px; left: -10px; animation-delay: 0s; }
+.decor-tr { top: -14px; right: -10px; animation-delay: 0.7s; }
+.decor-bl { bottom: -14px; left: -10px; animation-delay: 1.4s; }
+.decor-br { bottom: -14px; right: -10px; animation-delay: 2.1s; }
+
+@keyframes floatDecor {
+  0% { transform: translateY(0px) rotate(0deg); }
+  100% { transform: translateY(-8px) rotate(12deg); }
+}
+
+/* ========================================================
+   MÀN HÌNH 1: PHONG THƯ TÌNH YÊU
+   ======================================================== */
+.envelope-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+}
+
+.floating-badge {
+  background: linear-gradient(135deg, #ff758c, #ff7eb3);
+  color: white;
+  padding: 10px 22px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: 0 8px 20px rgba(255, 117, 140, 0.4);
+  animation: badgeFloat 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes badgeFloat {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-6px); }
+}
+
+.envelope {
+  position: relative;
+  width: 290px;
+  height: 190px;
+  background: #ff9ebb;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(255, 105, 180, 0.35);
+  cursor: pointer;
+  perspective: 1000px;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.envelope:hover {
+  transform: translateY(-8px) scale(1.03);
+}
+
+.envelope-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #f77a9e;
+  border-radius: 12px;
+}
+
+.letter-preview {
+  position: absolute;
+  top: 10px;
+  left: 5%;
+  width: 90%;
+  height: 85%;
+  background: #fffdf9;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 2;
+}
+
+.letter-lines {
+  width: 70%;
+  height: 4px;
+  background: #ffd3e0;
+  border-radius: 4px;
+  box-shadow: 0 8px 0 #ffd3e0, 0 16px 0 #ffd3e0;
+}
+
+.mini-heart {
+  font-size: 26px;
+  animation: pulseBeat 1.2s infinite;
+  margin-top: 10px;
+}
+
+.envelope-front {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 145px 105px 145px;
+  border-color: transparent transparent #ff8dae transparent;
+  z-index: 4;
+  border-radius: 0 0 12px 12px;
+}
+
+.envelope-front::before {
+  content: '';
+  position: absolute;
+  left: -145px;
+  bottom: -105px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 95px 0 95px 145px;
+  border-color: transparent transparent transparent #ff7fa2;
+}
+
+.envelope-front::after {
+  content: '';
+  position: absolute;
+  right: -145px;
+  bottom: -105px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 95px 145px 95px 0;
+  border-color: transparent #ff7fa2 transparent transparent;
+}
+
+.envelope-flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 110px 145px 0 145px;
+  border-color: #f0698f transparent transparent transparent;
+  z-index: 5;
+  transform-origin: top center;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.heart-seal {
+  position: absolute;
+  top: 90px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 52px;
+  height: 52px;
+  background: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgba(247, 37, 133, 0.4);
+  z-index: 6;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.seal-emoji {
+  font-size: 26px;
+  animation: pulseBeat 1.2s infinite;
+}
+
+.seal-ripple {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid var(--primary-pink);
+  animation: rippleRing 1.8s ease-out infinite;
+}
+
+@keyframes pulseBeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+}
+
+@keyframes rippleRing {
+  0% { transform: scale(0.9); opacity: 0.9; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+.envelope.open .envelope-flap {
+  transform: rotateX(180deg);
+  z-index: 1;
+}
+
+.envelope.open .letter-preview {
+  transform: translateY(-80px);
+}
+
+.envelope.open .heart-seal {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0);
+}
+
+.envelope-hint {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--deep-pink);
+  letter-spacing: 0.5px;
+  animation: blinkHint 2s infinite;
+}
+
+@keyframes blinkHint {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+/* ========================================================
+   MÀN HÌNH 2: TÂM THƯ GÕ CHỮ
+   ======================================================== */
+.letter-header {
+  margin-bottom: 20px;
+}
+
+.cute-avatar-wrap {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+
+.cute-avatar {
+  font-size: 50px;
+  background: white;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  box-shadow: 0 8px 20px rgba(255, 105, 180, 0.3);
+  animation: avatarWiggle 3s ease-in-out infinite;
+}
+
+@keyframes avatarWiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-8deg); }
+  75% { transform: rotate(8deg); }
+}
+
+.avatar-heart {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  font-size: 22px;
+  animation: pulseBeat 1s infinite;
+}
+
+.letter-recipient {
+  font-family: 'Pacifico', cursive;
+  font-size: 1.6rem;
+  color: var(--deep-pink);
+  letter-spacing: 0.5px;
+}
+
+.typewriter-container {
+  background: rgba(255, 255, 255, 0.65);
+  border-radius: 20px;
+  padding: 24px 20px;
+  min-height: 180px;
+  text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  margin-bottom: 24px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.typewriter-body {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #532d43;
+  display: inline;
+  font-weight: 600;
+  white-space: pre-wrap;
+}
+
+.typewriter-cursor {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--deep-pink);
+  animation: blinkCursor 0.7s infinite;
+  margin-left: 2px;
+}
+
+@keyframes blinkCursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.letter-footer {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.6s ease;
+  pointer-events: none;
+}
+
+.letter-footer.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Nút bấm hiệu ứng Glow */
+.btn-primary {
+  background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 50%, #f72585 100%);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-family: 'Nunito', sans-serif;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(247, 37, 133, 0.4);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 14px 30px rgba(247, 37, 133, 0.55);
+}
+
+.btn-primary:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.btn-sparkle {
+  animation: sparkleSpin 1.5s infinite;
+}
+
+@keyframes sparkleSpin {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.3) rotate(45deg); }
+}
+
+/* ========================================================
+   MÀN HÌNH 3: CÂU HỎI TỎ TÌNH & NÚT CHẠY TRỐN
+   ======================================================== */
+.question-emoji-box {
+  margin-bottom: 16px;
+}
+
+.gif-question {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 16px rgba(255, 105, 180, 0.3));
+}
+
+.question-title {
+  font-family: 'Pacifico', cursive;
+  font-size: 1.7rem;
+  color: var(--deep-pink);
+  margin-bottom: 8px;
+  line-height: 1.35;
+}
+
+.question-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 30px;
+}
+
+.interactive-btn-group {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  min-height: 90px;
+  width: 100%;
+}
+
+.btn-choice {
+  padding: 14px 28px;
+  border-radius: 50px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-yes {
+  background: linear-gradient(135deg, #06d6a0 0%, #118ab2 100%);
+  color: white;
+  box-shadow: 0 10px 25px rgba(6, 214, 160, 0.45);
+  animation: pulseYes 1.8s infinite;
+  z-index: 10;
+}
+
+@keyframes pulseYes {
+  0%, 100% { transform: scale(1); box-shadow: 0 10px 25px rgba(6, 214, 160, 0.45); }
+  50% { transform: scale(1.06); box-shadow: 0 14px 32px rgba(6, 214, 160, 0.65); }
+}
+
+.btn-no {
+  background: linear-gradient(135deg, #ff6b6b, #ee5253);
+  color: white;
+  box-shadow: 0 8px 20px rgba(238, 82, 83, 0.35);
+  position: relative;
+  z-index: 15;
+  transition: left 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.no-attempts-hint {
+  margin-top: 20px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent-purple);
+  min-height: 22px;
+}
+
+/* ========================================================
+   MÀN HÌNH 4: THÀNH CÔNG & LOVE VOUCHERS
+   ======================================================== */
+.confetti-badge {
+  background: linear-gradient(135deg, #ffd166, #ff758c);
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.85rem;
+  padding: 8px 18px;
+  border-radius: 40px;
+  display: inline-block;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 15px rgba(255, 209, 102, 0.5);
+  letter-spacing: 0.5px;
+}
+
+.success-gif-box {
+  margin-bottom: 16px;
+}
+
+.gif-success {
+  width: 150px;
+  height: 150px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 20px rgba(255, 105, 180, 0.35));
+}
+
+.success-title {
+  font-family: 'Pacifico', cursive;
+  font-size: 1.6rem;
+  color: var(--deep-pink);
+  margin-bottom: 12px;
+  line-height: 1.35;
+}
+
+.success-message {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text-main);
+  font-weight: 600;
+  margin-bottom: 26px;
+}
+
+/* Vouchers Grid & 3D Flip */
+.vouchers-section {
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 24px;
+  padding: 20px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  margin-bottom: 24px;
+}
+
+.vouchers-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--deep-pink);
+  margin-bottom: 4px;
+}
+
+.vouchers-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.vouchers-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.voucher-card {
+  height: 125px;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.voucher-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.voucher-card.flipped .voucher-inner {
+  transform: rotateY(180deg);
+}
+
+.voucher-front, .voucher-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  box-shadow: 0 6px 16px rgba(255, 105, 180, 0.15);
+}
+
+.voucher-front {
+  background: linear-gradient(135deg, #fff0f5, #ffe4ec);
+  border: 2px dashed #ff8dae;
+}
+
+.voucher-front .v-icon {
+  font-size: 26px;
+  margin-bottom: 4px;
+}
+
+.voucher-front h4 {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #a83262;
+}
+
+.voucher-front .v-tap {
+  font-size: 0.72rem;
+  color: #ff608c;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.voucher-back {
+  background: linear-gradient(135deg, #ff758c, #ff7eb3);
+  color: white;
+  transform: rotateY(180deg);
+  border: 2px solid #ffffff;
+}
+
+.voucher-back .v-badge {
+  background: #ffe66d;
+  color: #704400;
+  font-size: 0.65rem;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-bottom: 4px;
+}
+
+.voucher-back .v-desc {
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.love-signature {
+  margin-top: 10px;
+}
+
+.sig-heart {
+  font-family: 'Dancing Script', cursive;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--deep-pink);
+  margin-bottom: 12px;
+}
+
+.btn-replay {
+  background: transparent;
+  border: 1px solid var(--deep-pink);
+  color: var(--deep-pink);
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 8px 18px;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-replay:hover {
+  background: var(--deep-pink);
+  color: white;
+}
+
+/* ========================================================
+   RESPONSIVE DESIGN (Mobile Friendly)
+   ======================================================== */
+@media (max-width: 480px) {
+  .glass-card {
+    padding: 28px 18px;
+    border-radius: 24px;
+  }
+
+  .envelope {
+    width: 260px;
+    height: 170px;
+  }
+
+  .envelope-front {
+    border-width: 0 130px 95px 130px;
+  }
+
+  .envelope-front::before {
+    left: -130px;
+    bottom: -95px;
+    border-width: 85px 0 85px 130px;
+  }
+
+  .envelope-front::after {
+    right: -130px;
+    bottom: -95px;
+    border-width: 85px 130px 85px 0;
+  }
+
+  .envelope-flap {
+    border-width: 100px 130px 0 130px;
+  }
+
+  .heart-seal {
+    top: 80px;
+    width: 46px;
+    height: 46px;
+  }
+
+  .letter-recipient, .question-title, .success-title {
+    font-size: 1.35rem;
+  }
+
+  .typewriter-body {
+    font-size: 0.95rem;
+  }
+
+  .vouchers-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .voucher-card {
+    height: 100px;
+  }
+
+  .interactive-btn-group {
+    flex-direction: column;
+    gap: 14px;
+    min-height: 130px;
+  }
+
+  .btn-choice {
+    width: 80%;
+    justify-content: center;
+  }
+
+  .music-player {
+    top: 10px;
+    right: 10px;
+    padding: 6px 12px;
+  }
+
+  .song-title {
+    font-size: 0.75rem;
+  }
+}

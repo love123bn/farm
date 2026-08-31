@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Gửi Người Anh Thương Nhất 💖</title>
+  <meta name="description" content="Trang web tỏ tình siêu dễ thương với hiệu ứng lấp lánh và bức thư tình ngọt ngào." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Nunito:wght@400;600;700;800;900&family=Pacifico&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Canvas cho hiệu ứng hạt tim, sao băng, hoa rơi & vệt chuột -->
+  <canvas id="fx-canvas"></canvas>
+
+  <!-- Trình phát nhạc mini lãng mạn -->
+  <div class="music-player" id="music-player" title="Bật/Tắt & Đổi nhạc lãng mạn">
+    <div class="disc-icon" id="disc-icon">
+      <span class="music-note">💖</span>
+    </div>
+    <div class="music-info">
+      <span class="song-title" id="song-title">Romantic Love Melody 💖</span>
+      <span class="music-status" id="music-status">Bật nhạc tình cảm 🎵</span>
+    </div>
+    <button class="btn-next-song" id="btn-next-song" title="Đổi bài nhạc khác">⏭️</button>
+    <audio id="bg-audio" loop preload="auto">
+      <source src="music.wav" type="audio/wav" />
+      <source src="music.mp3" type="audio/mp3" />
+    </audio>
+  </div>
+
+  <main class="app-container">
+    <!-- MÀN HÌNH 1: PHONG THƯ TÌNH YÊU -->
+    <section class="screen active" id="screen-envelope">
+      <div class="envelope-wrapper">
+        <div class="floating-badge">💌 Có một bức thư gửi riêng cho em!</div>
+        
+        <div class="envelope" id="envelope">
+          <div class="envelope-back"></div>
+          <div class="letter-preview">
+            <div class="letter-lines"></div>
+            <div class="mini-heart">💖</div>
+          </div>
+          <div class="envelope-front"></div>
+          <div class="envelope-flap" id="envelope-flap"></div>
+          <div class="heart-seal" id="heart-seal">
+            <span class="seal-emoji">💖</span>
+            <span class="seal-ripple"></span>
+          </div>
+        </div>
+
+        <p class="envelope-hint">✨ Chạm nhẹ vào trái tim để mở thư nha ✨</p>
+      </div>
+    </section>
+
+    <!-- MÀN HÌNH 2: TÂM THƯ TỎ TÌNH & GÕ CHỮ -->
+    <section class="screen" id="screen-letter">
+      <div class="glass-card letter-card">
+        <div class="card-decor decor-tl">🌸</div>
+        <div class="card-decor decor-tr">✨</div>
+        <div class="card-decor decor-bl">🧸</div>
+        <div class="card-decor decor-br">🎀</div>
+
+        <div class="letter-header">
+          <div class="cute-avatar-wrap">
+            <div class="cute-avatar">🐱</div>
+            <div class="avatar-heart">💕</div>
+          </div>
+          <h1 class="letter-recipient" id="recipient-name">Gửi em - Người anh thương nhất! 🌷</h1>
+        </div>
+
+        <div class="typewriter-container">
+          <p id="typewriter-text" class="typewriter-body"></p>
+          <span class="typewriter-cursor">|</span>
+        </div>
+
+        <div class="letter-footer" id="letter-footer">
+          <button class="btn-primary glow-effect" id="btn-to-question">
+            <span>Anh có điều này muốn hỏi em nè... 👉👈</span>
+            <span class="btn-sparkle">✨</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- MÀN HÌNH 3: CÂU HỎI TỎ TÌNH (MINI GAME NÚT TRỐN) -->
+    <section class="screen" id="screen-question">
+      <div class="glass-card question-card">
+        <div class="question-emoji-box">
+          <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHIxbzBpaWVhZXZucWR1aDJ4bWdmdWppdnB4aWx5czV3YmI3cHBwMCZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/cLS1cfxvGOPVpf9g3y/giphy.gif" alt="Cute Bear" class="gif-question" id="gif-state" />
+        </div>
+
+        <h2 class="question-title">Em có đồng ý làm người yêu anh hông? 🥺💖</h2>
+        <p class="question-subtitle">Đừng suy nghĩ nhiều nha, tim anh chỉ dành cho em thui đó!</p>
+
+        <div class="interactive-btn-group" id="btn-group">
+          <button class="btn-choice btn-yes glow-btn" id="btn-yes">
+            <span class="btn-icon">🥰</span>
+            <span class="btn-text">Dạ Em Đồng Ý! 💖</span>
+          </button>
+          
+          <button class="btn-choice btn-no" id="btn-no">
+            <span class="btn-icon">😝</span>
+            <span class="btn-text" id="no-text">Hông bé ơi 😜</span>
+          </button>
+        </div>
+
+        <p class="no-attempts-hint" id="no-hint"></p>
+      </div>
+    </section>
+
+    <!-- MÀN HÌNH 4: THÀNH CÔNG & HỘP VOUCHER TÌNH YÊU -->
+    <section class="screen" id="screen-success">
+      <div class="glass-card success-card">
+        <div class="confetti-badge">🎉 YAAAAY! CHÚNG MÌNH LÀ MỘT ĐÔI RỒI! 🎉</div>
+
+        <div class="success-gif-box">
+          <img src="https://media.giphy.com/media/MDJ9IbxxvDUQM/giphy.gif" alt="Happy Cat" class="gif-success" />
+        </div>
+
+        <h2 class="success-title">Từ hôm nay, em chính thức là người yêu của anh rùi nhá! 👩‍❤️‍👨✨</h2>
+        <p class="success-message">
+          Cảm ơn em vì đã đồng ý bước vào thế giới của anh. Anh hứa sẽ luôn lắng nghe, yêu thương và chăm sóc em thật nhiều mỗi ngày! 💌
+        </p>
+
+        <div class="vouchers-section">
+          <h3 class="vouchers-title">🎁 Tặng Em Những Voucher Đặc Quyền Nè:</h3>
+          <p class="vouchers-subtitle">(Nhấn vào từng thẻ để lật mở quà nha!)</p>
+          
+          <div class="vouchers-grid">
+            <div class="voucher-card" data-opened="false">
+              <div class="voucher-inner">
+                <div class="voucher-front">
+                  <span class="v-icon">🧋</span>
+                  <h4>Voucher Trà Sữa</h4>
+                  <p class="v-tap">Chạm mở 🎁</p>
+                </div>
+                <div class="voucher-back">
+                  <span class="v-badge">ĐÃ MỞ KHÓA!</span>
+                  <p class="v-desc">1 Ly trà sữa full topping bất cứ lúc nào em thèm!</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="voucher-card" data-opened="false">
+              <div class="voucher-inner">
+                <div class="voucher-front">
+                  <span class="v-icon">🍿</span>
+                  <h4>Voucher Đi Chơi</h4>
+                  <p class="v-tap">Chạm mở 🎁</p>
+                </div>
+                <div class="voucher-back">
+                  <span class="v-badge">ĐÃ MỞ KHÓA!</span>
+                  <p class="v-desc">1 Buổi xem phim & ăn ngon anh bao trọn gói!</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="voucher-card" data-opened="false">
+              <div class="voucher-inner">
+                <div class="voucher-front">
+                  <span class="v-icon">🤗</span>
+                  <h4>Voucher Ôm Ấm</h4>
+                  <p class="v-tap">Chạm mở 🎁</p>
+                </div>
+                <div class="voucher-back">
+                  <span class="v-badge">ĐÃ MỞ KHÓA!</span>
+                  <p class="v-desc">Chiếc ôm sạc đầy năng lượng vô hạn mỗi khi em mệt mỏi!</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="voucher-card" data-opened="false">
+              <div class="voucher-inner">
+                <div class="voucher-front">
+                  <span class="v-icon">👑</span>
+                  <h4>Quyền Công Chúa</h4>
+                  <p class="v-tap">Chạm mở 🎁</p>
+                </div>
+                <div class="voucher-back">
+                  <span class="v-badge">ĐÃ MỞ KHÓA!</span>
+                  <p class="v-desc">Em luôn luôn đúng, anh sẽ luôn dỗ dành và cưng chiều!</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="love-signature">
+          <p class="sig-heart">Forever with you ❤️</p>
+          <button class="btn-replay" id="btn-replay">✨ Xem lại từ đầu ✨</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
