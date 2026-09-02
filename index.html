@@ -1,200 +1,278 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Gửi Người Anh Thương Nhất 💖</title>
-  <meta name="description" content="Trang web tỏ tình siêu dễ thương với hiệu ứng lấp lánh và bức thư tình ngọt ngào." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Nunito:wght@400;600;700;800;900&family=Pacifico&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gửi Lương 💌 - Lời Từ Trái Tim Anh</title>
+    <meta name="description" content="Bức thư tình chân thành và ngọt ngào nhất anh dành tặng riêng cho Lương.">
+    
+    <!-- Google Fonts: Nghệ thuật & Chân thành -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Great+Vibes&family=Quicksand:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Canvas cho hiệu ứng hạt tim, sao băng, hoa rơi & vệt chuột -->
-  <canvas id="fx-canvas"></canvas>
+    <!-- Canvas Hiệu ứng nền (Trái tim bay, đom đóm, lấp lánh & pháo hoa) -->
+    <canvas id="bg-canvas"></canvas>
 
-  <!-- Trình phát nhạc mini lãng mạn -->
-  <div class="music-player" id="music-player" title="Bật/Tắt & Đổi nhạc lãng mạn">
-    <div class="disc-icon" id="disc-icon">
-      <span class="music-note">💖</span>
-    </div>
-    <div class="music-info">
-      <span class="song-title" id="song-title">Romantic Love Melody 💖</span>
-      <span class="music-status" id="music-status">Bật nhạc tình cảm 🎵</span>
-    </div>
-    <button class="btn-next-song" id="btn-next-song" title="Đổi bài nhạc khác">⏭️</button>
-    <audio id="bg-audio" loop preload="auto">
-      <source src="music.wav" type="audio/wav" />
-      <source src="music.mp3" type="audio/mp3" />
-    </audio>
-  </div>
+    <!-- Audio Nhạc Nền -->
+    <audio id="love-audio" src="music.mp3" preload="auto" loop></audio>
 
-  <main class="app-container">
-    <!-- MÀN HÌNH 1: PHONG THƯ TÌNH YÊU -->
-    <section class="screen active" id="screen-envelope">
-      <div class="envelope-wrapper">
-        <div class="floating-badge">💌 Có một bức thư gửi riêng cho em!</div>
+    <!-- Trình điều khiển nhạc nổi góc màn hình -->
+    <div class="music-toggle" id="music-toggle" title="Bật/Tắt nhạc">
+        <div class="disc-wrap">
+            <i class="fa-solid fa-compact-disc disc-icon"></i>
+            <i class="fa-solid fa-heart music-heart"></i>
+        </div>
+        <div class="music-note-wave">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+
+    <!-- Màn hình chính chứa phong bì thư 3D -->
+    <main class="main-container">
         
-        <div class="envelope" id="envelope">
-          <div class="envelope-back"></div>
-          <div class="letter-preview">
-            <div class="letter-lines"></div>
-            <div class="mini-heart">💖</div>
-          </div>
-          <div class="envelope-front"></div>
-          <div class="envelope-flap" id="envelope-flap"></div>
-          <div class="heart-seal" id="heart-seal">
-            <span class="seal-emoji">💖</span>
-            <span class="seal-ripple"></span>
-          </div>
+        <!-- Hint mở thư lúc ban đầu -->
+        <div class="top-hint" id="top-hint">
+            <span class="sparkle-icon">✨</span>
+            <p class="hint-text">Anh có một điều đặc biệt muốn gửi đến Lương...</p>
+            <span class="sparkle-icon">✨</span>
         </div>
 
-        <p class="envelope-hint">✨ Chạm nhẹ vào trái tim để mở thư nha ✨</p>
-      </div>
-    </section>
-
-    <!-- MÀN HÌNH 2: TÂM THƯ TỎ TÌNH & GÕ CHỮ -->
-    <section class="screen" id="screen-letter">
-      <div class="glass-card letter-card">
-        <div class="card-decor decor-tl">🌸</div>
-        <div class="card-decor decor-tr">✨</div>
-        <div class="card-decor decor-bl">🧸</div>
-        <div class="card-decor decor-br">🎀</div>
-
-        <div class="letter-header">
-          <div class="cute-avatar-wrap">
-            <div class="cute-avatar">🐱</div>
-            <div class="avatar-heart">💕</div>
-          </div>
-          <h1 class="letter-recipient" id="recipient-name">Gửi em - Người anh thương nhất! 🌷</h1>
-        </div>
-
-        <div class="typewriter-container">
-          <p id="typewriter-text" class="typewriter-body"></p>
-          <span class="typewriter-cursor">|</span>
-        </div>
-
-        <div class="letter-footer" id="letter-footer">
-          <button class="btn-primary glow-effect" id="btn-to-question">
-            <span>Anh có điều này muốn hỏi em nè... 👉👈</span>
-            <span class="btn-sparkle">✨</span>
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- MÀN HÌNH 3: CÂU HỎI TỎ TÌNH (MINI GAME NÚT TRỐN) -->
-    <section class="screen" id="screen-question">
-      <div class="glass-card question-card">
-        <div class="question-emoji-box">
-          <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHIxbzBpaWVhZXZucWR1aDJ4bWdmdWppdnB4aWx5czV3YmI3cHBwMCZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/cLS1cfxvGOPVpf9g3y/giphy.gif" alt="Cute Bear" class="gif-question" id="gif-state" />
-        </div>
-
-        <h2 class="question-title">Em có đồng ý làm người yêu anh hông? 🥺💖</h2>
-        <p class="question-subtitle">Đừng suy nghĩ nhiều nha, tim anh chỉ dành cho em thui đó!</p>
-
-        <div class="interactive-btn-group" id="btn-group">
-          <button class="btn-choice btn-yes glow-btn" id="btn-yes">
-            <span class="btn-icon">🥰</span>
-            <span class="btn-text">Dạ Em Đồng Ý! 💖</span>
-          </button>
-          
-          <button class="btn-choice btn-no" id="btn-no">
-            <span class="btn-icon">😝</span>
-            <span class="btn-text" id="no-text">Hông bé ơi 😜</span>
-          </button>
-        </div>
-
-        <p class="no-attempts-hint" id="no-hint"></p>
-      </div>
-    </section>
-
-    <!-- MÀN HÌNH 4: THÀNH CÔNG & HỘP VOUCHER TÌNH YÊU -->
-    <section class="screen" id="screen-success">
-      <div class="glass-card success-card">
-        <div class="confetti-badge">🎉 YAAAAY! CHÚNG MÌNH LÀ MỘT ĐÔI RỒI! 🎉</div>
-
-        <div class="success-gif-box">
-          <img src="https://media.giphy.com/media/MDJ9IbxxvDUQM/giphy.gif" alt="Happy Cat" class="gif-success" />
-        </div>
-
-        <h2 class="success-title">Từ hôm nay, em chính thức là người yêu của anh rùi nhá! 👩‍❤️‍👨✨</h2>
-        <p class="success-message">
-          Cảm ơn em vì đã đồng ý bước vào thế giới của anh. Anh hứa sẽ luôn lắng nghe, yêu thương và chăm sóc em thật nhiều mỗi ngày! 💌
-        </p>
-
-        <div class="vouchers-section">
-          <h3 class="vouchers-title">🎁 Tặng Em Những Voucher Đặc Quyền Nè:</h3>
-          <p class="vouchers-subtitle">(Nhấn vào từng thẻ để lật mở quà nha!)</p>
-          
-          <div class="vouchers-grid">
-            <div class="voucher-card" data-opened="false">
-              <div class="voucher-inner">
-                <div class="voucher-front">
-                  <span class="v-icon">🧋</span>
-                  <h4>Voucher Trà Sữa</h4>
-                  <p class="v-tap">Chạm mở 🎁</p>
+        <!-- Phong Bì 3D (3D Envelope Wrapper) -->
+        <div class="envelope-wrapper" id="envelope-wrapper">
+            <div class="envelope" id="envelope">
+                
+                <!-- Nắp phong bì (Flap) -->
+                <div class="envelope-flap" id="envelope-flap"></div>
+                
+                <!-- Tờ thư nhỏ trượt lên khi mở phong bì -->
+                <div class="envelope-paper-slide" id="paper-slide">
+                    <div class="slide-heart"><i class="fa-solid fa-heart"></i></div>
                 </div>
-                <div class="voucher-back">
-                  <span class="v-badge">ĐÃ MỞ KHÓA!</span>
-                  <p class="v-desc">1 Ly trà sữa full topping bất cứ lúc nào em thèm!</p>
+
+                <!-- Thân & túi phong bì -->
+                <div class="envelope-pocket"></div>
+                <div class="envelope-left"></div>
+                <div class="envelope-right"></div>
+                
+                <!-- Tem sáp niêm phong hình trái tim (Wax Seal) -->
+                <div class="wax-seal" id="wax-seal" title="Chạm để mở thư">
+                    <div class="seal-inner">
+                        <i class="fa-solid fa-heart seal-heart"></i>
+                        <span class="seal-glow"></span>
+                    </div>
+                    <div class="pulse-ring"></div>
+                    <div class="seal-label">Gửi Lương 💖</div>
                 </div>
-              </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- LÁ THƯ TÌNH CHÍNH (ĐẶT ĐỘC LẬP NGOÀI ĐỂ KHÔNG BỊ CO GIÃN THEO KHUNG PHONG BÌ) -->
+    <div class="letter-modal-overlay" id="letter-overlay">
+        <div class="letter-card-frame">
+            <!-- 4 Góc nghệ thuật cố định ở 4 góc khung thư, không bị trôi khi cuộn nội dung -->
+            <div class="letter-corner top-left"></div>
+            <div class="letter-corner top-right"></div>
+            <div class="letter-corner bottom-left"></div>
+            <div class="letter-corner bottom-right"></div>
+
+            <!-- Nút đóng/thu nhỏ thư cố định -->
+            <button class="close-letter-btn" id="close-letter-btn" title="Thu gọn thư">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <!-- Vùng cuộn nội dung lá thư bên trong -->
+            <div class="letter" id="letter">
+                <div class="letter-inner-content">
+                    <div class="letter-header">
+                        <span class="letter-date" id="current-date">Ngày đẹp nhất cùng em</span>
+                        <div class="stamp-postmark">
+                            <i class="fa-solid fa-stamp"></i>
+                            <span>LOVE MAIL • 520Hz</span>
+                        </div>
+                    </div>
+
+                    <h2 class="letter-salutation">Gửi Lương - Người Con Gái Anh Thương! 💕</h2>
+
+                    <!-- Nội dung lá thư gõ chữ Typewriter -->
+                    <div class="letter-body">
+                        <div id="typewriter-text" class="typewriter-content"></div>
+                        <span class="cursor" id="cursor">|</span>
+                    </div>
+
+                    <div class="letter-signature">
+                        <p class="sign-from">Người luôn thương em,</p>
+                        <p class="sign-name">Anh ❤️</p>
+                    </div>
+
+                    <!-- Khu vực câu hỏi tỏ tình & nút tương tác -->
+                    <div class="confession-action-area" id="action-area">
+                        <h3 class="action-title">Lương có đồng ý làm người anh thương không? 🌸</h3>
+                        <div class="action-buttons">
+                            <button class="btn btn-yes" id="btn-yes">
+                                <i class="fa-solid fa-heart-circle-check"></i>
+                                <span>Em Đồng Ý! 💖</span>
+                            </button>
+                            <button class="btn btn-no" id="btn-no">
+                                <span>Để em suy nghĩ... 🥺</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Chúc Mừng & Pháo Hoa Khi Đồng Ý -->
+    <div class="celebration-modal" id="celebration-modal">
+        <div class="celebration-card">
+            <div class="celebration-icon-wrapper">
+                <div class="heart-pulse-anim">
+                    <i class="fa-solid fa-heart big-heart"></i>
+                </div>
+                <div class="floating-mini-hearts">
+                    <i class="fa-solid fa-heart h1"></i>
+                    <i class="fa-solid fa-heart h2"></i>
+                    <i class="fa-solid fa-heart h3"></i>
+                    <i class="fa-solid fa-heart h4"></i>
+                </div>
             </div>
 
-            <div class="voucher-card" data-opened="false">
-              <div class="voucher-inner">
-                <div class="voucher-front">
-                  <span class="v-icon">🍿</span>
-                  <h4>Voucher Đi Chơi</h4>
-                  <p class="v-tap">Chạm mở 🎁</p>
-                </div>
-                <div class="voucher-back">
-                  <span class="v-badge">ĐÃ MỞ KHÓA!</span>
-                  <p class="v-desc">1 Buổi xem phim & ăn ngon anh bao trọn gói!</p>
-                </div>
-              </div>
+            <h2 class="celebration-title">Cảm Ơn Lương Vì Đã Gật Đầu! 💍✨</h2>
+            <p class="celebration-desc">
+                Từ giây phút này, hành trình của anh có thêm nụ cười của Lương.<br>
+                Anh hứa sẽ luôn lắng nghe, chở che và yêu thương Lương bằng tất cả sự chân thành nhất mà anh có!
+            </p>
+
+            <div class="love-quote-box">
+                <i class="fa-solid fa-quote-left quote-icon"></i>
+                <p class="quote-text">"Thế giới có hơn 8 tỉ người, nhưng anh chỉ muốn nắm tay một mình em."</p>
+                <i class="fa-solid fa-quote-right quote-icon"></i>
             </div>
 
-            <div class="voucher-card" data-opened="false">
-              <div class="voucher-inner">
-                <div class="voucher-front">
-                  <span class="v-icon">🤗</span>
-                  <h4>Voucher Ôm Ấm</h4>
-                  <p class="v-tap">Chạm mở 🎁</p>
-                </div>
-                <div class="voucher-back">
-                  <span class="v-badge">ĐÃ MỞ KHÓA!</span>
-                  <p class="v-desc">Chiếc ôm sạc đầy năng lượng vô hạn mỗi khi em mệt mỏi!</p>
-                </div>
-              </div>
+            <div class="celebration-footer">
+                <button class="btn-continue btn-open-game" id="btn-go-game">
+                    <i class="fa-solid fa-gift"></i>
+                    <span>Ấn vô đây nè ✨</span>
+                </button>
+                <button class="btn-sub-replay" id="btn-replay">
+                    <i class="fa-solid fa-envelope-open-text"></i>
+                    <span>Đọc Lại Thư Tình</span>
+                </button>
             </div>
-
-            <div class="voucher-card" data-opened="false">
-              <div class="voucher-inner">
-                <div class="voucher-front">
-                  <span class="v-icon">👑</span>
-                  <h4>Quyền Công Chúa</h4>
-                  <p class="v-tap">Chạm mở 🎁</p>
-                </div>
-                <div class="voucher-back">
-                  <span class="v-badge">ĐÃ MỞ KHÓA!</span>
-                  <p class="v-desc">Em luôn luôn đúng, anh sẽ luôn dỗ dành và cưng chiều!</p>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
+    </div>
 
-        <div class="love-signature">
-          <p class="sig-heart">Forever with you ❤️</p>
-          <button class="btn-replay" id="btn-replay">✨ Xem lại từ đầu ✨</button>
+    <!-- TRANG THỨ 2: LẬT THẺ BÀI CHỌN MÓN HẸN HÒ CHO LƯƠNG -->
+    <div class="card-game-overlay" id="card-game-overlay">
+        <div class="card-game-modal">
+            <div class="game-header">
+                <div class="game-badge">
+                    <i class="fa-solid fa-sparkles"></i>
+                    <span>Phần Thưởng Cho Lương</span>
+                    <i class="fa-solid fa-sparkles"></i>
+                </div>
+                <h2 class="game-title">Lật Thẻ Bài May Mắn 💖</h2>
+                <p class="game-subtitle">Chạm vào từng lá bài bí mật để xem anh sẽ dẫn Lương đi thưởng thức món nào nhé!</p>
+            </div>
+
+            <div class="cards-grid">
+                <!-- Thẻ 1: Trà sữa -->
+                <div class="flip-card" data-card="trasua">
+                    <div class="flip-card-inner">
+                        <!-- Mặt sau (Bí mật) -->
+                        <div class="flip-card-face flip-card-back">
+                            <div class="card-seal-icon">
+                                <i class="fa-solid fa-gift"></i>
+                            </div>
+                            <span class="card-mystery-text">Lá Bài #1</span>
+                            <div class="card-tap-hint">Chạm để lật ✨</div>
+                        </div>
+                        <!-- Mặt trước (Kết quả) -->
+                        <div class="flip-card-face flip-card-front card-trasua">
+                            <div class="card-emoji-icon">🧋</div>
+                            <h3 class="card-item-title">Trà Sữa</h3>
+                            <p class="card-item-desc">Một ly trà sữa full topping siêu to khổng lồ theo đúng vị Lương thích nhất!</p>
+                            <span class="card-tag">Anh bao trọn đời 💕</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thẻ 2: Mì cay -->
+                <div class="flip-card" data-card="micay">
+                    <div class="flip-card-inner">
+                        <!-- Mặt sau (Bí mật) -->
+                        <div class="flip-card-face flip-card-back">
+                            <div class="card-seal-icon">
+                                <i class="fa-solid fa-gift"></i>
+                            </div>
+                            <span class="card-mystery-text">Lá Bài #2</span>
+                            <div class="card-tap-hint">Chạm để lật ✨</div>
+                        </div>
+                        <!-- Mặt trước (Kết quả) -->
+                        <div class="flip-card-face flip-card-front card-micay">
+                            <div class="card-emoji-icon">🍜</div>
+                            <h3 class="card-item-title">Mì Cay</h3>
+                            <p class="card-item-desc">Một tô mì cay 7 cấp độ nóng hổi thơm phức, ăn cùng anh bất cứ lúc nào!</p>
+                            <span class="card-tag">Đi ăn cùng anh nha 🔥</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thẻ 3: Matcha latte -->
+                <div class="flip-card" data-card="matcha">
+                    <div class="flip-card-inner">
+                        <!-- Mặt sau (Bí mật) -->
+                        <div class="flip-card-face flip-card-back">
+                            <div class="card-seal-icon">
+                                <i class="fa-solid fa-gift"></i>
+                            </div>
+                            <span class="card-mystery-text">Lá Bài #3</span>
+                            <div class="card-tap-hint">Chạm để lật ✨</div>
+                        </div>
+                        <!-- Mặt trước (Kết quả) -->
+                        <div class="flip-card-face flip-card-front card-matcha">
+                            <div class="card-emoji-icon">🍵</div>
+                            <h3 class="card-item-title">Matcha Latte</h3>
+                            <p class="card-item-desc">Một ly Matcha Latte thơm béo ngọt ngào tiếp thêm 100% năng lượng vui vẻ!</p>
+                            <span class="card-tag">Dịu dàng như Lương 🌿</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hộp thông điệp kết siêu ngọt khi lật thẻ -->
+            <div class="all-cards-unlocked" id="cards-unlocked-box">
+                <div class="unlocked-box">
+                    <i class="fa-solid fa-heart unlocked-icon"></i>
+                    <p class="unlocked-text">
+                        "Thật ra dù Lương chọn món nào, anh cũng sẽ dẫn Lương đi ăn <strong>tất cả các món</strong> trên bất cứ khi nào Lương muốn!" ❤️
+                    </p>
+                </div>
+            </div>
+
+            <!-- Nút điều hướng -->
+            <div class="game-footer-actions">
+                <button class="btn-game-nav" id="btn-back-letter">
+                    <i class="fa-solid fa-envelope-open-text"></i>
+                    <span>Xem Lại Bức Thư Tình 💌</span>
+                </button>
+            </div>
         </div>
-      </div>
-    </section>
-  </main>
+    </div>
 
-  <script src="script.js"></script>
+    <!-- Custom Cursor Sparkle Trailing Container -->
+    <div id="cursor-trail-container"></div>
+
+    <script src="script.js"></script>
 </body>
 </html>

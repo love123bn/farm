@@ -1,638 +1,653 @@
-/* ========================================================
-   SCRIPT.JS - TRANG WEB TỎ TÌNH (PHIÊN BẢN TỐI ƯU MƯỢT 60FPS)
-   ======================================================== */
+/* ==========================================================================
+   ROMANTIC LOVE LETTER - JAVASCRIPT XỬ LÝ HIỆU ỨNG & TƯƠNG TÁC
+   ========================================================================== */
 
-// --- 1. ÂM THANH SYNTH CUTE (WEB AUDIO API) ---
-let globalAudioCtx = null;
-function getAudioContext() {
-  if (!globalAudioCtx) {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (AudioContext) {
-      globalAudioCtx = new AudioContext();
-    }
-  }
-  if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
-    globalAudioCtx.resume().catch(() => {});
-  }
-  return globalAudioCtx;
-}
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Lấy các phần tử DOM ---
+    const envelopeWrapper = document.getElementById('envelope-wrapper');
+    const envelope = document.getElementById('envelope');
+    const waxSeal = document.getElementById('wax-seal');
+    const letterOverlay = document.getElementById('letter-overlay');
+    const letter = document.getElementById('letter');
+    const closeLetterBtn = document.getElementById('close-letter-btn');
+    const topHint = document.getElementById('top-hint');
+    const typewriterEl = document.getElementById('typewriter-text');
+    const cursorEl = document.getElementById('cursor');
+    const btnYes = document.getElementById('btn-yes');
+    const btnNo = document.getElementById('btn-no');
+    const celebrationModal = document.getElementById('celebration-modal');
+    const btnReplay = document.getElementById('btn-replay');
+    const musicToggle = document.getElementById('music-toggle');
+    const loveAudio = document.getElementById('love-audio');
+    const currentDateEl = document.getElementById('current-date');
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
 
-class SoundEffects {
-  playPop() {
-    try {
-      const ctx = getAudioContext();
-      if (!ctx) return;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const now = ctx.currentTime;
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(440, now);
-      osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
-      gain.gain.setValueAtTime(0.2, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.1);
-    } catch (e) { }
-  }
-
-  playCuteChime() {
-    try {
-      const ctx = getAudioContext();
-      if (!ctx) return;
-      const notes = [523.25, 659.25, 783.99, 1046.50];
-      const baseTime = ctx.currentTime;
-      notes.forEach((freq, index) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        const t = baseTime + index * 0.07;
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(freq, t);
-        gain.gain.setValueAtTime(0.18, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(t);
-        osc.stop(t + 0.35);
-      });
-    } catch (e) { }
-  }
-
-  playDodge() {
-    try {
-      const ctx = getAudioContext();
-      if (!ctx) return;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const now = ctx.currentTime;
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(600, now);
-      osc.frequency.linearRampToValueAtTime(320, now + 0.12);
-      gain.gain.setValueAtTime(0.2, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.12);
-    } catch (e) { }
-  }
-
-  playVictory() {
-    try {
-      const ctx = getAudioContext();
-      if (!ctx) return;
-      const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
-      const baseTime = ctx.currentTime;
-      notes.forEach((freq, idx) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        const t = baseTime + idx * 0.1;
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, t);
-        gain.gain.setValueAtTime(0.25, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(t);
-        osc.stop(t + 0.6);
-      });
-    } catch (e) { }
-  }
-}
-
-const sfx = new SoundEffects();
-
-// --- 2. HẠT RƠI CANVAS TỐI ƯU HIỆU NĂNG (OFFSCREEN SPRITES & THROTTLING) ---
-const canvas = document.getElementById('fx-canvas');
-const ctx = canvas.getContext('2d', { alpha: true });
-let particles = [];
-let confettiList = [];
-let mouseTrails = [];
-let isTabActive = true;
-
-// Pre-render sprite hình trái tim để tránh tính toán bezier curve mỗi frame
-const heartCanvas = document.createElement('canvas');
-heartCanvas.width = 32;
-heartCanvas.height = 32;
-const hctx = heartCanvas.getContext('2d');
-hctx.fillStyle = '#ff758c';
-hctx.beginPath();
-hctx.moveTo(16, 8);
-hctx.bezierCurveTo(16, 0, 0, 0, 0, 8);
-hctx.bezierCurveTo(0, 16, 16, 24, 16, 28);
-hctx.bezierCurveTo(16, 24, 32, 16, 32, 8);
-hctx.bezierCurveTo(32, 0, 16, 0, 16, 8);
-hctx.fill();
-
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-
-document.addEventListener('visibilitychange', () => {
-  isTabActive = !document.hidden;
-});
-
-class FloatingItem {
-  constructor() {
-    this.reset(true);
-  }
-  reset(initRandomY = false) {
-    this.x = Math.random() * canvas.width;
-    this.y = initRandomY ? Math.random() * canvas.height : -30;
-    this.size = Math.random() * 10 + 12;
-    this.speedY = Math.random() * 1.0 + 0.6;
-    this.speedX = (Math.random() - 0.5) * 0.6;
-    this.alpha = Math.random() * 0.4 + 0.4;
-    this.type = Math.random() > 0.4 ? 'heart' : 'circle';
-  }
-  update() {
-    this.y += this.speedY;
-    this.x += this.speedX;
-    if (this.y > canvas.height + 30) this.reset();
-  }
-  draw() {
-    ctx.globalAlpha = this.alpha;
-    if (this.type === 'heart') {
-      ctx.drawImage(heartCanvas, this.x, this.y, this.size, this.size);
-    } else {
-      ctx.fillStyle = '#ffd1dc';
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size * 0.35, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-}
-
-// Giới hạn 16 hạt để vừa đẹp vừa siêu mượt
-const PARTICLE_COUNT = 16;
-for (let i = 0; i < PARTICLE_COUNT; i++) {
-  particles.push(new FloatingItem());
-}
-
-// Vệt sáng chuột (Throttled nhẹ nhàng)
-class SparkleTrail {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-    this.size = Math.random() * 5 + 3;
-    this.alpha = 0.8;
-  }
-  update() {
-    this.alpha -= 0.04;
-    this.size *= 0.94;
-    this.y -= 0.6;
-  }
-  draw() {
-    ctx.globalAlpha = Math.max(0, this.alpha);
-    ctx.fillStyle = '#ff758c';
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-    ctx.fill();
-  }
-}
-
-let lastPointerTime = 0;
-function handlePointerMove(e) {
-  const now = performance.now();
-  if (now - lastPointerTime < 35) return; // Throttle ~30fps
-  lastPointerTime = now;
-
-  const x = e.clientX || (e.touches && e.touches[0].clientX);
-  const y = e.clientY || (e.touches && e.touches[0].clientY);
-  if (x && y && mouseTrails.length < 20) {
-    mouseTrails.push(new SparkleTrail(x, y));
-  }
-}
-window.addEventListener('mousemove', handlePointerMove, { passive: true });
-window.addEventListener('touchmove', handlePointerMove, { passive: true });
-
-// Confetti khi đồng ý (Tối ưu số lượng hạt)
-class HeartConfetti {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-    this.size = Math.random() * 12 + 10;
-    const angle = Math.random() * Math.PI * 2;
-    const speed = Math.random() * 9 + 4;
-    this.vx = Math.cos(angle) * speed;
-    this.vy = Math.sin(angle) * speed - 3;
-    this.gravity = 0.25;
-    this.alpha = 1;
-  }
-  update() {
-    this.x += this.vx;
-    this.y += this.vy;
-    this.vy += this.gravity;
-    this.alpha -= 0.018;
-  }
-  draw() {
-    ctx.globalAlpha = Math.max(0, this.alpha);
-    ctx.drawImage(heartCanvas, this.x, this.y, this.size, this.size);
-  }
-}
-
-function triggerHeartFireworks() {
-  const cx = canvas.width / 2;
-  const cy = canvas.height * 0.45;
-  for (let i = 0; i < 45; i++) {
-    confettiList.push(new HeartConfetti(cx, cy));
-  }
-}
-
-// Vòng lặp Render Canvas mượt mà
-function animateCanvas() {
-  if (isTabActive) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Hạt nền
-    for (let i = 0; i < particles.length; i++) {
-      particles[i].update();
-      particles[i].draw();
+    // Cập nhật ngày tháng hiện tại (Format: Ngày DD tháng MM, YYYY)
+    const now = new Date();
+    const formattedDate = `Ngày ${now.getDate()} tháng ${now.getMonth() + 1}, ${now.getFullYear()}`;
+    if (currentDateEl) {
+        currentDateEl.innerText = formattedDate;
     }
 
-    // Vệt chuột
-    for (let i = mouseTrails.length - 1; i >= 0; i--) {
-      mouseTrails[i].update();
-      mouseTrails[i].draw();
-      if (mouseTrails[i].alpha <= 0) mouseTrails.splice(i, 1);
+    // --- LỜI THƯ TÌNH CHÂN THÀNH (XƯNG HÔ ANH - EM, GỬI LƯƠNG) ---
+    const loveLetterContent = 
+`Chào Lương, người con gái đã làm trái tim anh rung động... ✨
+
+Có lẽ đây là lần đầu tiên anh viết ra những dòng tâm sự chân thành và sâu lắng như thế này để gửi riêng đến Lương.
+
+Từ khoảnh khắc đầu tiên bắt gặp nụ cười của em, anh nhận ra thế giới của mình dường như đã có thêm một mảng màu rực rỡ và ấm áp. Mỗi ngày trôi qua, anh luôn thấy mình bất giác mỉm cười khi nghĩ về Lương, luôn mong ngóng từng dòng tin nhắn và muốn được lắng nghe từng câu chuyện vui buồn trong ngày của em.
+
+Anh nhận ra rằng mình không chỉ thích được trò chuyện cùng em, mà anh thực sự muốn trở thành một người luôn ở bên cạnh, chở che, cùng Lương chia sẻ những ước mơ và cùng nhau bước qua mọi thăng trầm của cuộc sống.
+
+Anh không dám hứa hẹn một điều gì quá xa vời, nhưng anh xin hứa sẽ dành cho Lương trọn vẹn sự chân thành, tôn trọng và yêu thương dịu dàng nhất từ sâu thẳm trái tim mình.
+
+Hôm nay, anh gom hết can đảm để gửi đến Lương lời tỏ tình này... ❤️`;
+
+    let isTyping = false;
+    let typeIndex = 0;
+    let typingTimeout;
+
+    // --- XỬ LÝ ÂM THANH (MUSIC) ---
+    let isMusicPlaying = false;
+
+    function playMusic() {
+        if (!isMusicPlaying) {
+            loveAudio.play().then(() => {
+                isMusicPlaying = true;
+                musicToggle.classList.add('playing');
+            }).catch(e => {
+                console.log("Audio autoplay prevented, user interaction required:", e);
+            });
+        }
     }
 
-    // Confetti
-    for (let i = confettiList.length - 1; i >= 0; i--) {
-      confettiList[i].update();
-      confettiList[i].draw();
-      if (confettiList[i].alpha <= 0) confettiList.splice(i, 1);
+    function toggleMusic() {
+        if (isMusicPlaying) {
+            loveAudio.pause();
+            isMusicPlaying = false;
+            musicToggle.classList.remove('playing');
+        } else {
+            loveAudio.play().then(() => {
+                isMusicPlaying = true;
+                musicToggle.classList.add('playing');
+            }).catch(e => console.log(e));
+        }
     }
-    ctx.globalAlpha = 1;
-  }
-  requestAnimationFrame(animateCanvas);
-}
-animateCanvas();
 
-// --- 3. BỘ PHÁT NHẠC TÌNH CẢM LÃNG MẠN (ROMANTIC AUDIO ENGINE) ---
-const musicPlayer = document.getElementById('music-player');
-const discIcon = document.getElementById('disc-icon');
-const songTitle = document.getElementById('song-title');
-const musicStatus = document.getElementById('music-status');
-const btnNextSong = document.getElementById('btn-next-song');
-const bgAudio = document.getElementById('bg-audio');
+    musicToggle.addEventListener('click', toggleMusic);
 
-// Danh sách bài hát (Bao gồm file offline cục bộ và Web Audio Synth)
-const playlist = [
-  {
-    title: "Canon in Love (Romantic Piano) 💖",
-    src: "music.wav",
-    type: "audio"
-  },
-  {
-    title: "Sweet Love Ballad ✨",
-    src: "music.mp3",
-    type: "audio"
-  },
-  {
-    title: "Romantic Music Box (Live Synth) 🌸",
-    src: null,
-    type: "synth"
-  }
-];
+    // --- HIỆU ỨNG GÕ CHỮ RANDOM GIẢI MÃ KÝ TỰ & BỤI SAO (SCRAMBLE STARDUST TYPEWRITER) ---
+    const letterSignature = document.querySelector('.letter-signature');
+    const actionArea = document.getElementById('action-area');
+    const scrambleGlyphs = '✦✧★☆♡♥*~x#@$%&?abcdefghijklmnopqrstuvwxyz0123456789';
+    let currentWordContainer = null;
 
-let currentTrackIdx = 0;
-let isMusicActive = false;
+    function getRandomGlyph() {
+        return scrambleGlyphs[Math.floor(Math.random() * scrambleGlyphs.length)];
+    }
 
-// Web Audio live synthesizer (Dự phòng thông minh)
-class LiveMusicBox {
-  constructor() {
-    this.isPlaying = false;
-    this.timer = null;
-    this.noteIndex = 0;
-    this.melody = [
-      { note: 'E', oct: 5, dur: 1 }, { note: 'D', oct: 5, dur: 1 }, { note: 'C', oct: 5, dur: 2 },
-      { note: 'G', oct: 4, dur: 1 }, { note: 'A', oct: 4, dur: 1 }, { note: 'C', oct: 5, dur: 2 },
-      { note: 'D', oct: 5, dur: 1 }, { note: 'E', oct: 5, dur: 1 }, { note: 'F', oct: 5, dur: 1 }, { note: 'E', oct: 5, dur: 1 },
-      { note: 'D', oct: 5, dur: 2 }, { note: 'G', oct: 4, dur: 2 },
-      { note: 'E', oct: 5, dur: 1 }, { note: 'G', oct: 5, dur: 1 }, { note: 'C', oct: 6, dur: 2 },
-      { note: 'B', oct: 5, dur: 1 }, { note: 'A', oct: 5, dur: 1 }, { note: 'G', oct: 5, dur: 2 },
-      { note: 'F', oct: 5, dur: 1 }, { note: 'E', oct: 5, dur: 1 }, { note: 'D', oct: 5, dur: 1 }, { note: 'F', oct: 5, dur: 1 },
-      { note: 'E', oct: 5, dur: 2 }, { note: 'C', oct: 5, dur: 2 },
-      { note: 'A', oct: 4, dur: 1 }, { note: 'C', oct: 5, dur: 1 }, { note: 'E', oct: 5, dur: 2 },
-      { note: 'D', oct: 5, dur: 1 }, { note: 'C', oct: 5, dur: 1 }, { note: 'D', oct: 5, dur: 2 },
-      { note: 'C', oct: 5, dur: 3 }, { note: 'G', oct: 4, dur: 1 }
+    function spawnStardust(x, y) {
+        const container = document.getElementById('cursor-trail-container');
+        if (!container) return;
+        const dust = document.createElement('div');
+        dust.className = 'stardust-particle';
+        const stars = ['✨', '✦', '✧', '★', '·', '💖'];
+        dust.innerText = stars[Math.floor(Math.random() * stars.length)];
+        
+        const size = Math.random() * 8 + 12;
+        const tx = (Math.random() - 0.5) * 40 + 'px';
+        const ty = -(Math.random() * 30 + 15) + 'px';
+        
+        dust.style.fontSize = size + 'px';
+        dust.style.left = x + 'px';
+        dust.style.top = y + 'px';
+        dust.style.setProperty('--tx', tx);
+        dust.style.setProperty('--ty', ty);
+        
+        container.appendChild(dust);
+        setTimeout(() => dust.remove(), 1000);
+    }
+
+    function typeWriter() {
+        if (typeIndex < loveLetterContent.length) {
+            const char = loveLetterContent.charAt(typeIndex);
+            
+            if (char === '\n') {
+                typewriterEl.appendChild(document.createElement('br'));
+                currentWordContainer = null;
+            } else if (char === ' ') {
+                const spaceText = document.createTextNode(' ');
+                typewriterEl.appendChild(spaceText);
+                currentWordContainer = null;
+            } else {
+                // Nếu chưa có word container cho từ hiện tại, tạo mới
+                if (!currentWordContainer) {
+                    currentWordContainer = document.createElement('span');
+                    currentWordContainer.className = 'word-token';
+                    typewriterEl.appendChild(currentWordContainer);
+                }
+
+                const span = document.createElement('span');
+                span.className = 'char-scramble';
+                span.textContent = getRandomGlyph();
+                currentWordContainer.appendChild(span);
+
+                // Tạo bụi sao li ti ngẫu nhiên
+                if (typeIndex % 6 === 0 && cursorEl) {
+                    const rect = cursorEl.getBoundingClientRect();
+                    if (rect.top > 0) {
+                        spawnStardust(rect.left + 4, rect.top + 6);
+                    }
+                }
+
+                // Hiệu ứng nhấp nháy random chữ cái trước khi hiện chữ thật
+                setTimeout(() => {
+                    span.textContent = getRandomGlyph();
+                }, 30);
+
+                setTimeout(() => {
+                    span.textContent = char;
+                    span.className = 'char-revealed';
+                }, 75);
+            }
+            
+            typeIndex++;
+            
+            // Tốc độ gõ chậm rãi, sâu lắng và lãng mạn
+            let delay = 60;
+            if (char === '.' || char === '!' || char === '?') delay = 400;
+            else if (char === ',' || char === '…') delay = 220;
+            else if (char === '\n') delay = 320;
+
+            typingTimeout = setTimeout(typeWriter, delay);
+        } else {
+            isTyping = false;
+            currentWordContainer = null;
+            if (cursorEl) {
+                cursorEl.style.transition = 'opacity 0.5s ease';
+                cursorEl.style.opacity = '0';
+                setTimeout(() => { cursorEl.style.display = 'none'; }, 500);
+            }
+
+            // Hiện chữ ký sau khi gõ xong
+            setTimeout(() => {
+                if (letterSignature) letterSignature.classList.add('show');
+            }, 400);
+
+            // Hiện câu hỏi tỏ tình & các nút bấm tương tác sau cùng
+            setTimeout(() => {
+                if (actionArea) {
+                    actionArea.classList.add('show');
+                    // Tự động cuộn mượt đến câu hỏi để Lương dễ thấy và bấm
+                    const letterBox = document.getElementById('letter');
+                    if (letterBox) {
+                        letterBox.scrollTo({
+                            top: letterBox.scrollHeight,
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+            }, 1000);
+        }
+    }
+
+    function startTypingEffect() {
+        if (isTyping) return;
+        typewriterEl.innerHTML = '';
+        typeIndex = 0;
+        isTyping = true;
+        currentWordContainer = null;
+        if (cursorEl) {
+            cursorEl.style.display = 'inline-block';
+            cursorEl.style.opacity = '1';
+        }
+        if (letterSignature) letterSignature.classList.remove('show');
+        if (actionArea) actionArea.classList.remove('show');
+        clearTimeout(typingTimeout);
+        setTimeout(typeWriter, 500);
+    }
+
+    // --- MỞ LÁ THƯ 3D VÀ HIỂN THỊ NỘI DUNG ĐỘC LẬP ---
+    let isEnvelopeOpen = false;
+
+    function openEnvelope() {
+        if (isEnvelopeOpen) return;
+        isEnvelopeOpen = true;
+
+        // Bật nhạc
+        playMusic();
+
+        // Thêm class mở nắp phong bì
+        envelopeWrapper.classList.add('open');
+
+        // Bắn hiệu ứng trái tim mini mừng mở thư
+        triggerHeartBurst(window.innerWidth / 2, window.innerHeight / 2, 30);
+
+        // Hiển thị lá thư tràn khung hình êm ái sau khi nắp phong bì mở
+        setTimeout(() => {
+            letterOverlay.classList.add('active');
+            startTypingEffect();
+        }, 500);
+    }
+
+    function closeEnvelope() {
+        if (!isEnvelopeOpen) return;
+        isEnvelopeOpen = false;
+        letterOverlay.classList.remove('active');
+        envelopeWrapper.classList.remove('open');
+        if (letterSignature) letterSignature.classList.remove('show');
+        if (actionArea) actionArea.classList.remove('show');
+        clearTimeout(typingTimeout);
+        isTyping = false;
+    }
+
+    // Sự kiện mở thư
+    waxSeal.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openEnvelope();
+    });
+
+    envelope.addEventListener('click', (e) => {
+        if (!isEnvelopeOpen) {
+            openEnvelope();
+        }
+    });
+
+    closeLetterBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeEnvelope();
+    });
+
+    // --- NÚT "TỪ CHỐI / SUY NGHĨ" NÉ TRÁNH TUYỆT ĐỐI (IMPOSSIBLE RUNAWAY BUTTON) ---
+    const noButtonTexts = [
+        "Ơ đừng từ chối mà 🥺",
+        "Anh thương Lương mà 💕",
+        "Lương nghĩ lại đi... 🥰",
+        "Bấm 'Đồng Ý' kìa Lương ✨",
+        "Nút này bị hỏng rồi 😆",
+        "Không cho Lương chọn đâu 🙈",
+        "Làm người anh thương nha 💖"
     ];
-    this.bassChords = [
-      ['C3', 'G3', 'E4'], ['G2', 'D3', 'B3'], ['A2', 'E3', 'C4'], ['E2', 'B2', 'G3'],
-      ['F2', 'C3', 'A3'], ['C3', 'G3', 'E4'], ['F2', 'C3', 'A3'], ['G2', 'D3', 'B3']
-    ];
-    this.bassIndex = 0;
-  }
+    let noClickCount = 0;
+    let lastMoveTime = 0;
 
-  getFreq(noteStr) {
-    const noteMap = { 'C': 0, 'C#': 1, 'D': 2, 'D#': 3, 'E': 4, 'F': 5, 'F#': 6, 'G': 7, 'G#': 8, 'A': 9, 'A#': 10, 'B': 11 };
-    let name = noteStr.slice(0, -1);
-    let oct = parseInt(noteStr.slice(-1));
-    const semitones = noteMap[name] + (oct - 4) * 12 - 9;
-    return 440 * Math.pow(2, semitones / 12);
-  }
+    function moveNoButton(cursorX, cursorY) {
+        const nowTime = Date.now();
+        if (nowTime - lastMoveTime < 120) return; // Debounce nhẹ để mượt
+        lastMoveTime = nowTime;
 
-  playNote(freq, dur = 1.2, vol = 0.2) {
-    const ctx = getAudioContext();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    const osc1 = ctx.createOscillator();
-    const osc2 = ctx.createOscillator();
-    const gain = ctx.createGain();
+        const actionArea = document.getElementById('action-area');
+        const buttonsContainer = document.querySelector('.action-buttons');
+        if (!actionArea || !buttonsContainer || !actionArea.classList.contains('show')) return;
 
-    osc1.type = 'sine';
-    osc2.type = 'triangle';
-    osc1.frequency.setValueAtTime(freq, now);
-    osc2.frequency.setValueAtTime(freq * 2.002, now);
+        // Đổi câu chữ ngắn gọn, dễ thương
+        noClickCount++;
+        const randomText = noButtonTexts[noClickCount % noButtonTexts.length];
+        const spanText = btnNo.querySelector('span');
+        if (spanText) spanText.innerText = randomText;
 
-    gain.gain.setValueAtTime(0.001, now);
-    gain.gain.linearRampToValueAtTime(vol, now + 0.03);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+        // Lấy thông số khung chứa
+        const containerWidth = buttonsContainer.clientWidth;
+        const btnWidth = btnNo.offsetWidth || 180;
+        
+        // Tính toán khoảng di chuyển an toàn tuyệt đối (trong khung)
+        const maxOffset = Math.max(20, (containerWidth / 2) - (btnWidth / 2) - 15);
+        
+        // Random toạ độ X và Y mới
+        let randomX = (Math.random() * 2 - 1) * maxOffset;
+        let randomY = (Math.random() * 2 - 1) * 30; // lên/xuống tối đa 30px
 
-    osc1.connect(gain);
-    osc2.connect(gain);
-    gain.connect(ctx.destination);
+        // Nếu có toạ độ chuột, ưu tiên né xa hướng chuột
+        if (cursorX !== undefined && cursorY !== undefined) {
+            const btnRect = btnNo.getBoundingClientRect();
+            const btnCenterX = btnRect.left + btnRect.width / 2;
+            if (cursorX > btnCenterX) {
+                randomX = -Math.abs(randomX); // né sang trái
+            } else {
+                randomX = Math.abs(randomX); // né sang phải
+            }
+        }
 
-    osc1.start(now);
-    osc2.start(now);
-    osc1.stop(now + dur);
-    osc2.stop(now + dur);
-  }
+        // Tránh đè lên nút Yes
+        if (Math.abs(randomX) < 30) {
+            randomX = randomX >= 0 ? randomX + 45 : randomX - 45;
+        }
 
-  step() {
-    if (!this.isPlaying) return;
-    const current = this.melody[this.noteIndex];
-    const freq = this.getFreq(current.note + current.oct);
-    this.playNote(freq, current.dur * 0.9, 0.22);
+        randomX = Math.max(-maxOffset, Math.min(maxOffset, randomX));
 
-    if (this.noteIndex % 2 === 0) {
-      const chord = this.bassChords[this.bassIndex % this.bassChords.length];
-      chord.forEach(n => {
-        this.playNote(this.getFreq(n), 2.2, 0.08);
-      });
-      this.bassIndex++;
+        btnNo.style.transition = 'transform 0.15s cubic-bezier(0.1, 0.9, 0.2, 1)';
+        btnNo.style.transform = `translate(${randomX}px, ${randomY}px) scale(0.95)`;
+
+        // Tăng kích thước nút Yes dần lên
+        const currentScale = Math.min(1 + (noClickCount * 0.04), 1.28);
+        btnYes.style.transform = `scale(${currentScale})`;
     }
 
-    const nextDelay = current.dur * 480;
-    this.noteIndex = (this.noteIndex + 1) % this.melody.length;
-    this.timer = setTimeout(() => this.step(), nextDelay);
-  }
+    // Cảm biến khoảng cách: Chuột đến gần trong bán kính 75px là tự động phóng đi ngay
+    window.addEventListener('mousemove', (e) => {
+        if (!actionArea || !actionArea.classList.contains('show')) return;
+        const btnRect = btnNo.getBoundingClientRect();
+        const btnCenterX = btnRect.left + btnRect.width / 2;
+        const btnCenterY = btnRect.top + btnRect.height / 2;
+        
+        const distX = e.clientX - btnCenterX;
+        const distY = e.clientY - btnCenterY;
+        const distance = Math.sqrt(distX * distX + distY * distY);
 
-  start() {
-    if (this.isPlaying) return;
-    this.isPlaying = true;
-    getAudioContext();
-    this.step();
-  }
+        // Bán kính bảo vệ 75px
+        if (distance < 75) {
+            moveNoButton(e.clientX, e.clientY);
+        }
+    });
 
-  stop() {
-    this.isPlaying = false;
-    if (this.timer) clearTimeout(this.timer);
-  }
-}
+    // Chặn triệt để tất cả sự kiện chạm, hover, click trực tiếp
+    const blockEvents = ['mouseenter', 'mouseover', 'mousedown', 'pointerdown', 'touchstart', 'touchmove', 'click'];
+    blockEvents.forEach(evt => {
+        btnNo.addEventListener(evt, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            moveNoButton();
+        }, { passive: false });
+    });
 
-const liveSynth = new LiveMusicBox();
+    // --- NÚT "EM ĐỒNG Ý" - CELEBRATION VÀ PHÁO HOA RỰC RỠ ---
+    const cardGameOverlay = document.getElementById('card-game-overlay');
+    const btnGoGame = document.getElementById('btn-go-game');
+    const btnBackLetter = document.getElementById('btn-back-letter');
+    const flipCards = document.querySelectorAll('.flip-card');
+    const cardsUnlockedBox = document.getElementById('cards-unlocked-box');
 
-function playTrack(index) {
-  currentTrackIdx = (index + playlist.length) % playlist.length;
-  const track = playlist[currentTrackIdx];
+    btnYes.addEventListener('click', () => {
+        // Kích hoạt Modal chúc mừng
+        celebrationModal.classList.add('active');
 
-  // Dừng mọi âm thanh trước đó
-  liveSynth.stop();
-  if (bgAudio) {
-    bgAudio.pause();
-  }
+        // Bắn pháo hoa rực rỡ liên tục
+        triggerCelebrationFireworks();
+    });
 
-  songTitle.textContent = track.title;
-  discIcon.classList.add('playing');
-  musicStatus.textContent = 'Đang phát du dương... 🎶';
-  isMusicActive = true;
+    btnReplay.addEventListener('click', () => {
+        celebrationModal.classList.remove('active');
+        if (cardGameOverlay) cardGameOverlay.classList.remove('active');
+    });
 
-  if (track.type === 'audio' && bgAudio) {
-    bgAudio.src = track.src;
-    bgAudio.volume = 0.65;
-    const playPromise = bgAudio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(err => {
-        console.log('Audio file play fallback to synth:', err);
-        // Nếu file audio không load được, tự động chuyển sang synth sống động
-        liveSynth.start();
-      });
+    // Chuyển sang Trang 2: Minigame Lật Thẻ Bài
+    if (btnGoGame) {
+        btnGoGame.addEventListener('click', () => {
+            celebrationModal.classList.remove('active');
+            cardGameOverlay.classList.add('active');
+            triggerCelebrationFireworks();
+        });
     }
-  } else {
-    liveSynth.start();
-  }
-}
 
-function enableMusic() {
-  getAudioContext();
-  playTrack(currentTrackIdx);
-}
-
-function disableMusic() {
-  liveSynth.stop();
-  if (bgAudio) {
-    bgAudio.pause();
-  }
-  discIcon.classList.remove('playing');
-  musicStatus.textContent = 'Đã tạm dừng';
-  isMusicActive = false;
-}
-
-function toggleMusic(e) {
-  if (e && e.target === btnNextSong) return;
-  if (isMusicActive) {
-    disableMusic();
-  } else {
-    enableMusic();
-  }
-}
-musicPlayer.addEventListener('click', toggleMusic);
-
-if (btnNextSong) {
-  btnNextSong.addEventListener('click', (e) => {
-    e.stopPropagation();
-    sfx.playCuteChime();
-    playTrack(currentTrackIdx + 1);
-  });
-}
-
-function startMusicAuto() {
-  if (!isMusicActive) {
-    enableMusic();
-  }
-}
-
-// --- 4. CHUYỂN ĐỔI MÀN HÌNH ---
-const screens = {
-  envelope: document.getElementById('screen-envelope'),
-  letter: document.getElementById('screen-letter'),
-  question: document.getElementById('screen-question'),
-  success: document.getElementById('screen-success')
-};
-
-function switchScreen(fromId, toId) {
-  sfx.playPop();
-  screens[fromId].classList.remove('active');
-  setTimeout(() => {
-    screens[toId].classList.add('active');
-  }, 250);
-}
-
-// --- 5. MÀN HÌNH 1: MỞ BÌ THƯ ---
-const envelope = document.getElementById('envelope');
-const heartSeal = document.getElementById('heart-seal');
-let isEnvelopeOpened = false;
-
-function openEnvelope() {
-  if (isEnvelopeOpened) return;
-  isEnvelopeOpened = true;
-  sfx.playCuteChime();
-  startMusicAuto();
-
-  envelope.classList.add('open');
-
-  setTimeout(() => {
-    switchScreen('envelope', 'letter');
-    startTypewriter();
-  }, 900);
-}
-
-envelope.addEventListener('click', openEnvelope);
-heartSeal.addEventListener('click', (e) => {
-  e.stopPropagation();
-  openEnvelope();
-});
-
-// --- 6. MÀN HÌNH 2: TÂM THƯ GÕ CHỮ ---
-const letterContent = `Chào em! ✨
-
-Thật ra anh đã ấp ủ những lời này từ rất lâu rồi...
-Mỗi ngày được nhìn thấy nụ cười của em, nghe giọng nói hay chỉ đơn giản là một tin nhắn vu vơ cũng đủ làm một ngày của anh trở nên rực rỡ hơn bao giờ hết. 🌸
-
-Anh nhận ra rằng trong tim anh, em chính là người đặc biệt nhất mà anh luôn muốn che chở và đồng hành mỗi ngày! 💕`;
-
-const typewriterEl = document.getElementById('typewriter-text');
-const letterFooter = document.getElementById('letter-footer');
-const btnToQuestion = document.getElementById('btn-to-question');
-
-let typeIndex = 0;
-function startTypewriter() {
-  typewriterEl.textContent = '';
-  typeIndex = 0;
-  function typeChar() {
-    if (typeIndex < letterContent.length) {
-      typewriterEl.textContent += letterContent.charAt(typeIndex);
-      typeIndex++;
-      const delay = letterContent.charAt(typeIndex - 1) === '\n' ? 220 : 25;
-      setTimeout(typeChar, delay);
-    } else {
-      letterFooter.classList.add('visible');
-      sfx.playCuteChime();
+    // Nút quay lại đọc thư từ trang thẻ bài
+    if (btnBackLetter) {
+        btnBackLetter.addEventListener('click', () => {
+            cardGameOverlay.classList.remove('active');
+            letterOverlay.classList.add('active');
+        });
     }
-  }
-  setTimeout(typeChar, 400);
-}
 
-btnToQuestion.addEventListener('click', () => {
-  switchScreen('letter', 'question');
-});
+    // Xử lý lật thẻ bài 3D
+    let flippedCount = 0;
+    flipCards.forEach(card => {
+        card.addEventListener('click', (e) => {
+            const isFlipped = card.classList.contains('flipped');
+            if (!isFlipped) {
+                card.classList.add('flipped');
+                flippedCount++;
 
-// --- 7. MÀN HÌNH 3: MINI GAME NÚT TRỐN "EM CÓ THÍCH ANH HÔNG?" ---
-const btnYes = document.getElementById('btn-yes');
-const btnNo = document.getElementById('btn-no');
-const noText = document.getElementById('no-text');
-const noHint = document.getElementById('no-hint');
+                // Bắn hiệu ứng trái tim lấp lánh tại vị trí lá bài
+                const rect = card.getBoundingClientRect();
+                triggerHeartBurst(rect.left + rect.width / 2, rect.top + rect.height / 2, 25);
 
-const teasePhrases = [
-  "Hông bé ơi 😜",
-  "Bắt được anh đi! 🏃‍♂️",
-  "Nút xanh cơ mà! 🥰",
-  "Hông được từ chối đâu nha! 🥺",
-  "Chịu thua chưa nè? 😝",
-  "Đồng ý đi mừ! 💖"
-];
+                // Khi đã lật ít nhất 1 thẻ bài, mở hộp thông điệp siêu ngọt
+                if (cardsUnlockedBox) {
+                    setTimeout(() => {
+                        cardsUnlockedBox.classList.add('show');
+                    }, 400);
+                }
+            }
+        });
+    });
 
-let noAttemptCount = 0;
-let yesScale = 1;
+    // ================= HIỆU ỨNG PHÁO HOA VÀ CANVAS PARTICLES =================
 
-function dodgeButton() {
-  sfx.playDodge();
-  noAttemptCount++;
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
 
-  const phrase = teasePhrases[noAttemptCount % teasePhrases.length];
-  noText.textContent = phrase;
+    window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    });
 
-  if (noAttemptCount === 1) {
-    noHint.textContent = "Ơ kìa, nút này có chân biết chạy đó! 🤭";
-  } else if (noAttemptCount === 3) {
-    noHint.textContent = "Định mệnh bảo em phải chọn nút Xanh rùi! ✨";
-  } else if (noAttemptCount >= 5) {
-    noHint.textContent = "Chịu thua đi nào, đồng ý với anh nhaaa! 🥰";
-  }
+    // Các loại hạt nền
+    const particles = [];
+    const fireworks = [];
+    const heartColors = ['#ff4d6d', '#ff758c', '#ff85a2', '#f72585', '#ffccd5', '#ffb703', '#ffffff'];
 
-  // Tăng nút Đồng Ý nhẹ nhàng
-  yesScale += 0.08;
-  btnYes.style.transform = `scale(${yesScale})`;
+    // Khởi tạo trái tim trôi nổi nền
+    class FloatingHeart {
+        constructor() {
+            this.reset();
+        }
 
-  const card = document.querySelector('.question-card');
-  const cardWidth = card ? card.clientWidth : 350;
-  const maxOffset = Math.min(100, (cardWidth - 160) / 2);
+        reset() {
+            this.x = Math.random() * width;
+            this.y = height + Math.random() * 50;
+            this.size = Math.random() * 14 + 8;
+            this.speedY = Math.random() * 1.2 + 0.6;
+            this.speedX = Math.sin(Math.random() * Math.PI) * 0.8;
+            this.opacity = Math.random() * 0.5 + 0.3;
+            this.color = heartColors[Math.floor(Math.random() * heartColors.length)];
+            this.rotation = (Math.random() - 0.5) * 45;
+            this.rotSpeed = (Math.random() - 0.5) * 1.5;
+        }
 
-  const randomX = (Math.random() - 0.5) * 2 * maxOffset;
-  const randomY = (Math.random() - 0.5) * 60;
+        update() {
+            this.y -= this.speedY;
+            this.x += Math.sin(this.y * 0.01) * 0.6 + this.speedX;
+            this.rotation += this.rotSpeed;
 
-  btnNo.style.position = 'relative';
-  btnNo.style.left = `${randomX}px`;
-  btnNo.style.top = `${randomY}px`;
-}
+            if (this.y < -30) {
+                this.reset();
+            }
+        }
 
-btnNo.addEventListener('mouseenter', dodgeButton);
-btnNo.addEventListener('touchstart', (e) => {
-  e.preventDefault();
-  dodgeButton();
-}, { passive: false });
-btnNo.addEventListener('click', dodgeButton);
+        draw() {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.rotation * Math.PI / 180);
+            ctx.globalAlpha = this.opacity;
+            ctx.fillStyle = this.color;
 
-btnYes.addEventListener('click', () => {
-  sfx.playVictory();
-  triggerHeartFireworks();
-  switchScreen('question', 'success');
-});
+            // Vẽ hình trái tim
+            const s = this.size / 15;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.bezierCurveTo(-5 * s, -7 * s, -12 * s, 0, 0, 10 * s);
+            ctx.bezierCurveTo(12 * s, 0, 5 * s, -7 * s, 0, 0);
+            ctx.fill();
 
-// --- 8. MÀN HÌNH 4: VOUCHER TÌNH YÊU 3D FLIP ---
-const voucherCards = document.querySelectorAll('.voucher-card');
-voucherCards.forEach(card => {
-  card.addEventListener('click', () => {
-    sfx.playPop();
-    card.classList.toggle('flipped');
-  });
-});
+            ctx.restore();
+        }
+    }
 
-// Nút Xem lại từ đầu
-const btnReplay = document.getElementById('btn-replay');
-btnReplay.addEventListener('click', () => {
-  sfx.playPop();
-  envelope.classList.remove('open');
-  isEnvelopeOpened = false;
-  letterFooter.classList.remove('visible');
-  btnYes.style.transform = 'scale(1)';
-  yesScale = 1;
-  btnNo.style.left = '0px';
-  btnNo.style.top = '0px';
-  noText.textContent = "Hông bé ơi 😜";
-  noHint.textContent = "";
-  noAttemptCount = 0;
+    // Khởi tạo 55 trái tim trôi lơ lửng nền
+    for (let i = 0; i < 55; i++) {
+        const h = new FloatingHeart();
+        h.y = Math.random() * height; // Rải đều khắp màn hình lúc đầu
+        particles.push(h);
+    }
 
-  voucherCards.forEach(c => c.classList.remove('flipped'));
+    // Hạt pháo hoa trái tim (Heart Firework Particle)
+    class FireworkParticle {
+        constructor(x, y, color) {
+            this.x = x;
+            this.y = y;
+            this.color = color || heartColors[Math.floor(Math.random() * heartColors.length)];
+            
+            // Phân bổ hạt tạo thành hình dáng trái tim khi nổ
+            const t = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 4 + 2;
+            
+            // Phương trình hình trái tim
+            const hx = 16 * Math.pow(Math.sin(t), 3);
+            const hy = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
 
-  screens.success.classList.remove('active');
-  setTimeout(() => {
-    screens.envelope.classList.add('active');
-  }, 250);
+            this.vx = (hx / 16) * speed;
+            this.vy = (hy / 16) * speed;
+            
+            this.alpha = 1;
+            this.decay = Math.random() * 0.015 + 0.01;
+            this.size = Math.random() * 6 + 3;
+            this.gravity = 0.05;
+        }
+
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+            this.vy += this.gravity;
+            this.vx *= 0.98;
+            this.vy *= 0.98;
+            this.alpha -= this.decay;
+        }
+
+        draw() {
+            ctx.save();
+            ctx.globalAlpha = Math.max(this.alpha, 0);
+            ctx.fillStyle = this.color;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = this.color;
+
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+    }
+
+    function triggerHeartBurst(x, y, count = 40) {
+        for (let i = 0; i < count; i++) {
+            fireworks.push(new FireworkParticle(x, y));
+        }
+    }
+
+    function triggerCelebrationFireworks() {
+        let count = 0;
+        const interval = setInterval(() => {
+            const rx = Math.random() * (width * 0.8) + (width * 0.1);
+            const ry = Math.random() * (height * 0.5) + (height * 0.15);
+            triggerHeartBurst(rx, ry, 50);
+            count++;
+            if (count > 10) clearInterval(interval);
+        }, 350);
+    }
+
+    // Vòng lặp animation chính
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+
+        // Vẽ và cập nhật trái tim nền
+        particles.forEach(p => {
+            p.update();
+            p.draw();
+        });
+
+        // Vẽ và cập nhật pháo hoa
+        for (let i = fireworks.length - 1; i >= 0; i--) {
+            const f = fireworks[i];
+            f.update();
+            f.draw();
+            if (f.alpha <= 0) {
+                fireworks.splice(i, 1);
+            }
+        }
+
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    // ================= HIỆU ỨNG VỆT SÁNG & TRÁI TIM NỞ RỘ KHI CLICK =================
+    let lastTrailTime = 0;
+    const trailContainer = document.getElementById('cursor-trail-container');
+
+    function createSparkle(x, y) {
+        const now = Date.now();
+        if (now - lastTrailTime < 45) return;
+        lastTrailTime = now;
+
+        const sparkle = document.createElement('div');
+        sparkle.className = 'sparkle-particle';
+        
+        const size = Math.random() * 8 + 4;
+        const color = heartColors[Math.floor(Math.random() * heartColors.length)];
+        const tx = (Math.random() - 0.5) * 40 + 'px';
+        const ty = (Math.random() - 0.5) * 40 + 'px';
+
+        sparkle.style.width = size + 'px';
+        sparkle.style.height = size + 'px';
+        sparkle.style.backgroundColor = color;
+        sparkle.style.boxShadow = `0 0 10px ${color}`;
+        sparkle.style.left = (x - size / 2) + 'px';
+        sparkle.style.top = (y - size / 2) + 'px';
+        sparkle.style.setProperty('--tx', tx);
+        sparkle.style.setProperty('--ty', ty);
+
+        trailContainer.appendChild(sparkle);
+
+        setTimeout(() => {
+            sparkle.remove();
+        }, 1000);
+    }
+
+    // Hiệu ứng chùm trái tim bay lên mỗi khi bấm chuột hoặc chạm màn hình
+    const clickHeartEmojis = ['💖', '💕', '🌸', '✨', '❤️', '💗'];
+    function createClickHeart(x, y) {
+        for (let i = 0; i < 4; i++) {
+            const heart = document.createElement('div');
+            heart.className = 'floating-click-heart';
+            heart.innerText = clickHeartEmojis[Math.floor(Math.random() * clickHeartEmojis.length)];
+            
+            const size = Math.random() * 12 + 16;
+            const tx = (Math.random() - 0.5) * 90 + 'px';
+            const ty = -(Math.random() * 70 + 40) + 'px';
+            const rot = (Math.random() - 0.5) * 50 + 'deg';
+
+            heart.style.fontSize = size + 'px';
+            heart.style.left = x + 'px';
+            heart.style.top = y + 'px';
+            heart.style.setProperty('--tx', tx);
+            heart.style.setProperty('--ty', ty);
+            heart.style.setProperty('--rot', rot);
+
+            trailContainer.appendChild(heart);
+
+            setTimeout(() => {
+                heart.remove();
+            }, 1200);
+        }
+    }
+
+    window.addEventListener('click', (e) => {
+        createClickHeart(e.clientX, e.clientY);
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        createSparkle(e.clientX, e.clientY);
+    });
+
+    window.addEventListener('touchmove', (e) => {
+        if (e.touches.length > 0) {
+            createSparkle(e.touches[0].clientX, e.touches[0].clientY);
+        }
+    }, { passive: true });
+
+    window.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) {
+            createClickHeart(e.touches[0].clientX, e.touches[0].clientY);
+        }
+    }, { passive: true });
+
 });
